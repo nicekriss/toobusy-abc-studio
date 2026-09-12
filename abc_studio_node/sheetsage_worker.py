@@ -17,7 +17,15 @@ os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
 def write_json(path, value):
     temporary = path.with_suffix(".tmp")
     temporary.write_text(json.dumps(value, ensure_ascii=False, allow_nan=False), encoding="utf-8")
-    temporary.replace(path)
+    for attempt in range(40):
+        try:
+            temporary.replace(path)
+            return
+        except PermissionError as exc:
+            # Windows readers can briefly deny replacement while polling status.
+            if sys.platform != "win32" or exc.winerror not in (5, 32, 33) or attempt == 39:
+                raise
+            time.sleep(.05)
 
 
 def render_preview(path, tracks, duration):
