@@ -3,8 +3,8 @@
 이 폴더를 ComfyUI의 `custom_nodes` 아래에 두면(예: `custom_nodes/toobusy-abc-studio`)
 ComfyUI가 파이썬 패키지로 읽어들이므로, 이 `__init__.py`가 노드 매핑을 내놓아야 한다.
 
-노드 자체는 텍스트만 주고받아서 import 시점 의존성이 없다. 편집기는 `js/` 아래의
-단독 HTML 한 장이라 별도 설치가 필요 없다.
+오디오 분석의 무거운 패키지는 별도 작업 프로세스에서만 불러온다.
+기본 악보 편집기는 `js/` 아래에 있고 ComfyUI에서 제공한다.
 """
 
 import logging
@@ -30,5 +30,14 @@ else:
     NODE_DISPLAY_NAME_MAPPINGS.update(_NAMES)
 
 WEB_DIRECTORY = "./js"
+
+try:
+    from .abc_studio_node.audio_routes import register_routes
+    register_routes()
+except ImportError:
+    # Score parsing and tests can run without a ComfyUI server.
+    pass
+except Exception:
+    logger.exception("[toobusy-abc-studio] 음원 분석 경로 등록 실패")
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]

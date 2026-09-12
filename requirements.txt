@@ -1,0 +1,3 @@
+# Torch and torchaudio are supplied by ComfyUI; do not replace its GPU build.
+librosa>=0.11,<0.12
+soundfile>=0.13,<0.14

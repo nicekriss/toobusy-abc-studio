@@ -1,0 +1,31 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Microphone recording fixture</title>
+<style>body{margin:0;font:14px sans-serif;overflow:hidden}header{padding:8px;height:24px}iframe{display:block;width:100%;height:calc(100vh - 40px);border:0}</style>
+<header><b>Synthetic microphone only — no physical microphone</b>
+<label>Response <select id="mode"><option value="tone">440 Hz tone</option><option value="delayed">Delayed permission (8 seconds)</option><option value="denied">Permission denied</option><option value="silence">Silence</option></select></label>
+<span id="status">Preparing studio…</span></header>
+<iframe title="ABC recording test"></iframe>
+<script type="module">
+// Serve on the real ComfyUI extension origin; this fixture is not part of the installed product.
+const studio = new URL('/extensions/toobusy-abc-studio/abc_studio/index.html', location.href);
+const source = await (await fetch(studio)).text();
+const setup = `<base href="${studio}"><script>
+Object.defineProperty(navigator, 'mediaDevices', {value:{getUserMedia:async () => {
+  const mode = parent.document.getElementById('mode').value;
+  parent.document.getElementById('status').textContent = 'Request pending';
+  if(mode === 'delayed') await new Promise(r=>setTimeout(r,8000));
+  if(mode === 'denied') throw new DOMException('Synthetic denied permission', 'NotAllowedError');
+  const ctx = new AudioContext(); await ctx.resume();
+  const dest = ctx.createMediaStreamDestination(), oscillator = ctx.createOscillator(), gain = ctx.createGain();
+  oscillator.frequency.value = 440; gain.gain.value = mode === 'silence' ? 0 : .2;
+  oscillator.connect(gain);gain.connect(dest);oscillator.start();
+  const stream = dest.stream, track = stream.getAudioTracks()[0], stop = track.stop.bind(track);
+  track.stop = () => { stop(); oscillator.disconnect();gain.disconnect();ctx.close(); parent.document.getElementById('status').textContent = 'Synthetic microphone stopped'; };
+  parent.document.getElementById('status').textContent = 'Synthetic microphone active';
+  return stream;
+}}});
+<\/script>`;
+document.querySelector('iframe').srcdoc = source.replace('<head>', '<head>'+setup);
+document.getElementById('status').textContent = 'Fixture ready';
+</script>
