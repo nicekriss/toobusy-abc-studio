@@ -2,6 +2,7 @@
 // abc 텍스트 위젯을 가진 노드에 "악보 스튜디오 열기" 버튼을 붙인다.
 import { app } from "../../scripts/app.js";
 import { resolveAbcTarget } from "./abc_studio/resolve.js";
+import { attachStudioButton } from "./abc_studio/button.js";
 
 const STUDIO_URL = new URL("./abc_studio/index.html", import.meta.url).href;
 const STYLE_ID = "abcst-style";
@@ -14,14 +15,14 @@ function ensureStyle() {
 .abcst-back{position:fixed;inset:0;background:rgba(6,8,12,.62);z-index:10000;display:flex;align-items:center;justify-content:center}
 .abcst-box{width:min(1400px,95vw);height:min(900px,92vh);background:#10131a;border:1px solid #2b313a;border-radius:14px;
  box-shadow:0 24px 70px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden}
-.abcst-bar{display:flex;align-items:center;gap:10px;padding:9px 14px;background:#161a21;border-bottom:1px solid #0b0e13;
+.abcst-bar{display:flex;align-items:center;flex-wrap:wrap;flex-shrink:0;gap:10px;padding:9px 14px;background:#161a21;border-bottom:1px solid #0b0e13;
  color:#e8eaee;font:600 14px "Malgun Gothic","Segoe UI",system-ui,sans-serif}
 .abcst-bar .sp{flex:1}
 .abcst-bar .tip{color:#9aa1ad;font-weight:400;font-size:12.5px}
 .abcst-bar button{background:#1f242c;color:#e8eaee;border:1px solid #2b313a;border-radius:8px;padding:6px 14px;
  cursor:pointer;font:inherit;font-weight:400}
 .abcst-bar button:hover{background:#272d37}
-.abcst-frame{flex:1;border:0;width:100%;background:#10131a}`;
+.abcst-frame{flex:1 1 0;min-height:0;border:0;width:100%;background:#10131a}`;
   document.head.appendChild(st);
 }
 
@@ -121,25 +122,14 @@ function writeAbc(node, text) {
   return { ok: true };
 }
 
-// abc 위젯이 입력 소켓으로 바뀌어도 버튼은 계속 붙어 있어야 한다.
-function hasAbcSlot(node) {
-  if ((node.widgets || []).some((w) => w && w.name === "abc" && w.type !== "button")) return true;
-  return (node.inputs || []).some((i) => i && i.name === "abc");
-}
-
 function attachButton(node) {
-  if (node.__abcStudioReady) return;
-  if (!hasAbcSlot(node)) return;
-  node.__abcStudioReady = true;
-  const btn = node.addWidget("button", "🎼 악보 스튜디오 열기", null, () => {
+  attachStudioButton(node, () => node.graph || app.graph, () => {
     openStudio(
       () => readAbc(node),
       (text) => writeAbc(node, text),
       () => describeTarget(node)
     );
   });
-  btn.serialize = false;
-  node.setSize(node.computeSize());
 }
 
 app.registerExtension({

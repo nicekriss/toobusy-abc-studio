@@ -1,0 +1,57 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>ABC Studio host button regression</title>
+<style>body{margin:0;font:14px sans-serif}header{padding:8px}iframe{width:100%;height:calc(100vh - 160px);border:0}pre{white-space:pre-wrap;max-height:95px;overflow:auto}</style>
+<header>Separate test canvas only. No generation is queued.
+<button id="run">Run button regression</button><button id="open" disabled>Open source studio</button><button id="inspect">Inspect applied score</button><pre id="result">Ready to test after ComfyUI loads.</pre></header>
+<iframe src="/" title="Isolated ComfyUI test canvas"></iframe>
+<script type="module">
+const frame = document.querySelector('iframe');
+const result = document.querySelector('#result');
+const tick = () => new Promise(r => setTimeout(r, 100));
+let scoreNode;
+document.querySelector('#open').onclick = () => scoreNode.widgets.find(w=>w.name==='🎼 악보 스튜디오 열기').callback();
+document.querySelector('#inspect').onclick = () => { result.textContent = scoreNode.widgets.find(w=>w.name==='abc').value; };
+document.querySelector('#run').onclick = async () => {
+  result.textContent = '';
+  const check = (condition, label) => {
+    if (!condition) throw new Error(label);
+    result.textContent += `PASS ${label}\n`;
+  };
+  try {
+    const win = frame.contentWindow, app = win.comfyAPI.app.app, LG = win.LiteGraph;
+    await app.loadGraphData({ nodes: [], links: [], groups: [], version: 0.4 });
+    const graph = app.graph;
+    const make = (type, pos) => { const n = LG.createNode(type); graph.add(n); n.pos = pos; return n; };
+    const source = make('ABCScoreInput', [30, 150]);
+    const gen = make('YuE2LocalGenerateWithABC', [480, 150]);
+    const abc = 'X:1\nT:Button regression\nM:4/4\nL:1/4\nQ:1/4=120\nK:C\nC D E F |';
+    source.widgets.find(w=>w.name==='abc').value = abc;
+    await tick();
+    const buttons = n => n.widgets.filter(w=>w.name==='🎼 악보 스튜디오 열기');
+    check(buttons(source).length===1 && buttons(gen).length===1, 'Standalone editors available');
+    const slot = gen.inputs.findIndex(i=>i.name==='abc');
+    check(slot>=0, 'Generation ABC socket available');
+    source.connect(0, gen, slot); await tick();
+    check(buttons(source).length===1 && buttons(gen).length===0, 'Only source editor visible when linked');
+    gen.disconnectInput(slot); await tick();
+    check(buttons(gen).length===1, 'Disconnect restores generation editor');
+    source.connect(0, gen, slot); await tick();
+    const saved = graph.serialize();
+    await app.loadGraphData(saved); await tick();
+    const restored = graph.getNodeById(source.id), restoredGen = graph.getNodeById(gen.id);
+    check(buttons(restored).length===1 && buttons(restoredGen).length===0, 'Reload retains one editor');
+    check(restored.widgets.find(w=>w.name==='abc').value===abc, 'ABC text survives workflow serialization');
+    const prompt = await app.graphToPrompt();
+    check(prompt.output[String(source.id)].inputs.abc===abc, 'Execution prompt retains exact ABC');
+    check(prompt.output[String(gen.id)].inputs.abc[0]===String(source.id), 'Execution prompt uses source link');
+    check(!('🎼 악보 스튜디오 열기' in prompt.output[String(source.id)].inputs), 'UI button is not serialized into execution input');
+    const clone = restored.clone(); graph.add(clone); clone.pos=[30,650]; await tick();
+    check(buttons(clone).length===1 && clone.widgets.find(w=>w.name==='abc').value===abc, 'Clone retains one editor and ABC');
+    scoreNode = restored;
+    document.querySelector('#open').disabled = false;
+    frame.contentWindow.app?.canvas?.setDirty?.(true,true);
+    result.textContent += 'ALL PASS — no audio generation requested.\n';
+  } catch (e) { result.textContent += `FAIL ${e.stack || e}\n`; }
+};
+</script>

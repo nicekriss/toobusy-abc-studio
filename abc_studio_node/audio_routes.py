@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import asyncio
 import atexit
-import importlib.util
 import json
+import math
 import os
 from pathlib import Path
 import shutil
@@ -16,10 +16,10 @@ import time
 import uuid
 import wave
 
-MAX_UPLOAD = 18 * 1024 * 1024
-MAX_SECONDS = 90
-JOB_TTL = 30 * 60
+MAX_UPLOAD = 512 * 1024 * 1024
+JOB_TTL = 6 * 60 * 60
 JOBS = {}
+CANCELLED = {}
 LOCK = asyncio.Lock()
 
 
@@ -47,9 +47,29 @@ def stop_workers():
 atexit.register(stop_workers)
 
 
-def missing_dependencies():
-    return [name for name in ("torch", "torchaudio", "librosa", "soundfile")
-            if importlib.util.find_spec(name) is None]
+def load_setup(path):
+    try:
+        config = json.loads(path.read_text(encoding="utf-8"))
+        for field in ("python", "ffmpeg"):
+            if not Path(config[field]).is_file():
+                return None
+        for field in ("model", "encoder"):
+            if not (Path(config[field]) / "model.safetensors").is_file():
+                return None
+        return config
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
+def parse_options(fields):
+    mode = fields.get("mode", "melody")
+    start = float(fields.get("from", "0"))
+    end = float(fields["to"]) if fields.get("to", "").strip() else None
+    if mode not in ("melody", "full"):
+        raise ValueError("SheetSage2 분석 방식을 선택하세요.")
+    if not math.isfinite(start) or start < 0 or (end is not None and (not math.isfinite(end) or end-start < .2)):
+        raise ValueError("분석 시작·종료 시간을 확인하세요.")
+    return {"mode": mode, "from": start, "to": end}
 
 
 def read_status(job):
@@ -68,6 +88,9 @@ def read_status(job):
 
 
 def prune_jobs():
+    for key, created in list(CANCELLED.items()):
+        if time.monotonic() - created > JOB_TTL:
+            del CANCELLED[key]
     for key, job in list(JOBS.items()):
         if time.monotonic() - job["created"] > JOB_TTL:
             if job["process"].poll() is None:
@@ -86,7 +109,7 @@ def register_routes():
         return
     server._abc_audio_registered = True
     routes = server.routes
-    models = Path(folder_paths.models_dir) / "abc_studio"
+    setup_path = Path(folder_paths.get_user_directory()) / "abc-studio" / "setup.json"
 
     async def expire_jobs(app):
         async def sweep():
@@ -103,55 +126,56 @@ def register_routes():
     @routes.get("/abc-studio/audio/status")
     async def capabilities(request):
         prune_jobs()
-        missing = missing_dependencies()
-        return web.json_response({"available": not missing, "missing": missing,
-                                  "maxSeconds": MAX_SECONDS, "device": "cpu",
-                                  "modelReady": (models / "hdemucs_high_trained.pt").is_file()})
+        ready = load_setup(setup_path) is not None
+        return web.json_response({"available": ready, "engine": "SheetSage2",
+                                  "maxSeconds": None, "maxUploadBytes": MAX_UPLOAD, "device": "cuda",
+                                  "modelReady": ready})
 
     @routes.post("/abc-studio/audio/jobs")
     async def start(request):
-        if missing_dependencies():
-            return web.json_response({"error": "음원 분석 패키지가 없습니다. ABC Studio의 requirements.txt를 설치한 후 다시 시도하세요."}, status=503)
+        setup = load_setup(setup_path)
+        if not setup:
+            return web.json_response({"error": "SheetSage2 설치가 필요합니다. 최신 설치기를 실행한 후 다시 시도하세요."}, status=503)
         async with LOCK:
             prune_jobs()
             if any(j["process"].poll() is None for j in JOBS.values()):
                 return web.json_response({"error": "다른 음원을 분석 중입니다. 완료 후 다시 시도하세요."}, status=409)
             if request.content_length and request.content_length > MAX_UPLOAD:
-                return web.json_response({"error": "음원 구간이 너무 큽니다. 최대 90초를 선택하세요."}, status=413)
+                return web.json_response({"error": "512 MB 이하의 음원 파일을 선택하세요."}, status=413)
             directory = Path(tempfile.mkdtemp(prefix="abc-studio-"))
             try:
                 reader = await request.multipart()
-                mode, size, found = "song", 0, False
+                fields, size, found = {}, 0, False
                 async for field in reader:
                     if field.name == "audio" and not found:
-                        with (directory / "input.wav").open("wb") as output:
+                        with (directory / "input.audio").open("wb") as output:
                             while chunk := await field.read_chunk():
                                 size += len(chunk)
                                 if size > MAX_UPLOAD:
-                                    raise ValueError("음원 구간이 너무 큽니다. 최대 90초를 선택하세요.")
+                                    raise ValueError("512 MB 이하의 음원 파일을 선택하세요.")
                                 output.write(chunk)
                         found = True
-                    elif field.name == "mode":
+                    elif field.name in ("mode", "from", "to", "id") and field.name not in fields:
                         value = await field.read_chunk(size=8192)
                         if not field.at_eof():
                             raise ValueError("분석 방식 값이 너무 깁니다.")
-                        mode = value.decode("utf-8")
+                        fields[field.name] = value.decode("utf-8")
                     else:
                         raise ValueError("지원하지 않는 요청 항목입니다.")
-                if not found or mode not in ("song", "vocal"):
+                if not found or not size:
                     raise ValueError("분석할 음원과 올바른 분석 방식을 선택하세요.")
-                with wave.open(str(directory / "input.wav"), "rb") as wav:
-                    seconds = wav.getnframes() / wav.getframerate()
-                    if (wav.getnchannels() not in (1, 2) or wav.getsampwidth() != 2
-                            or wav.getframerate() != 44100 or not 0.2 <= seconds <= MAX_SECONDS + .05):
-                        raise ValueError("0.2~90초의 음원 구간을 선택하세요.")
-                (directory / "request.json").write_text(json.dumps({"mode": mode, "model_directory": str(models)}), encoding="utf-8")
-                worker = Path(__file__).with_name("transcription_worker.py")
+                options = parse_options(fields)
+                job_id = uuid.UUID(fields["id"]).hex if fields.get("id") else uuid.uuid4().hex
+                if job_id in CANCELLED or request.transport is None or request.transport.is_closing():
+                    raise ValueError("분석을 취소했습니다.")
+                if job_id in JOBS:
+                    raise ValueError("이미 처리한 분석 요청입니다.")
+                (directory / "request.json").write_text(json.dumps(dict(options, setup=setup)), encoding="utf-8")
+                worker = Path(__file__).with_name("sheetsage_worker.py")
                 kwargs = {"creationflags": subprocess.CREATE_NO_WINDOW} if sys.platform == "win32" else {"start_new_session": True}
                 with (directory / "worker.log").open("wb") as log:
-                    process = subprocess.Popen([sys.executable, "-u", str(worker), str(directory)],
+                    process = subprocess.Popen([setup["python"], "-u", str(worker), str(directory)],
                                                stdout=log, stderr=log, **kwargs)
-                job_id = uuid.uuid4().hex
                 JOBS[job_id] = {"path": directory, "process": process, "created": time.monotonic()}
                 return web.json_response({"id": job_id}, status=202)
             except (ValueError, wave.Error, EOFError, OSError, AssertionError) as exc:
@@ -168,17 +192,27 @@ def register_routes():
             state["result"] = json.loads((job["path"] / "result.json").read_text(encoding="utf-8"))
         return web.json_response(state)
 
-    @routes.get("/abc-studio/audio/jobs/{job_id}/vocals")
-    async def vocals(request):
+    @routes.get("/abc-studio/audio/jobs/{job_id}/files/{name}")
+    async def artifact(request):
         job = JOBS.get(request.match_info["job_id"])
         if not job or read_status(job)["state"] != "done":
             raise web.HTTPNotFound()
-        return web.FileResponse(job["path"] / "vocals.wav", headers={"Cache-Control": "no-store"})
+        name = request.match_info["name"]
+        allowed = {"original.wav": "original.wav", "vocal.wav": "vocal.wav", "instrumental.wav": "instrumental.wav",
+                   "melody.wav": "melody.wav", "score.abc": "score/score.abc", "transcription.mid": "score/transcription.mid"}
+        if name not in allowed:
+            raise web.HTTPNotFound()
+        return web.FileResponse(job["path"] / allowed[name], headers={"Cache-Control": "no-store"})
 
     @routes.delete("/abc-studio/audio/jobs/{job_id}")
     async def cancel(request):
         async with LOCK:
-            job = JOBS.pop(request.match_info["job_id"], None)
+            try:
+                job_id = uuid.UUID(request.match_info["job_id"]).hex
+            except ValueError:
+                raise web.HTTPNotFound()
+            CANCELLED[job_id] = time.monotonic()
+            job = JOBS.pop(job_id, None)
             if job:
                 if job["process"].poll() is None:
                     await asyncio.to_thread(terminate_worker, job["process"])

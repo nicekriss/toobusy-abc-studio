@@ -12,13 +12,13 @@
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--fg);font:14px/1.5 "Malgun Gothic","Segoe UI",system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden}
-header{background:var(--panel);border-bottom:1px solid #0b0e13}
+header{background:var(--panel);border-bottom:1px solid #0b0e13;flex-shrink:0;max-height:42dvh;overflow:auto}
 .row{display:flex;align-items:center;gap:8px;padding:9px 14px;flex-wrap:wrap}
 .row.sub{padding-top:0;padding-bottom:9px}
 .grow{flex:1}
 .sep{width:1px;height:22px;background:var(--line);margin:0 4px}
 .glab{color:var(--dim);font-size:12.5px;white-space:nowrap}
-.grp{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.grp{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;max-width:100%}
 .unit{color:var(--dim);font-size:12px}
 button,.btn{background:#1f242c;color:var(--fg);border:1px solid #2b313a;border-radius:9px;padding:7px 13px;cursor:pointer;font:inherit;transition:.12s}
 button:hover,.btn:hover{background:#272d37;border-color:#3a414c}
@@ -41,20 +41,20 @@ select{background:#1a1f26;color:var(--fg);border:1px solid #2b313a;border-radius
 
 input[type=range]{width:130px;accent-color:var(--accent)}
 #zoomRange{width:104px}
-#voiceTabs{display:inline-flex;gap:6px}
+#voiceTabs{display:inline-flex;gap:6px;flex-wrap:wrap}
 .vtab{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid #2b313a;border-radius:999px;background:#1a1f26;cursor:pointer;user-select:none;font-size:13px}
 .vtab .dot{width:10px;height:10px;border-radius:50%}
 .vtab.act{border-color:var(--accent);background:#2b323c;font-weight:700}
 .vtab .eye{opacity:.7;font-size:11px;color:var(--dim)}
 .vtab.hid{opacity:.45}
 #status{color:var(--dim);font-size:12.5px}
-#rollWrap{flex:1;min-height:0;position:relative;background:#fff}
-canvas{display:block;width:100%;height:100%;cursor:crosshair}
+#rollWrap{flex:1;min-height:120px;position:relative;background:#fff}
+canvas{position:absolute;inset:0;display:block;width:100%;height:100%;cursor:crosshair}
 canvas.eraseMode{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Cg transform='rotate(-30 13 13)'%3E%3Crect x='4' y='9' width='18' height='10' rx='2.5' fill='%23ffffff' stroke='%239d5a55' stroke-width='2'/%3E%3Crect x='4' y='14.5' width='18' height='4.5' fill='%23e0cfcd' stroke='%239d5a55' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E") 8 16, cell}
 #hint{position:absolute;left:50%;transform:translateX(-50%);bottom:74px;background:rgba(16,19,26,.94);color:#cfd4dc;border:1px solid #2b313a;border-radius:999px;padding:8px 18px;font-size:12.5px;pointer-events:none;transition:opacity .5s;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 #hint b{color:var(--accent)}
 #hint.gone{opacity:0}
-.modal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(540px,92%);background:#1a1f26;border:1px solid #2b313a;border-radius:18px;padding:26px 30px 24px;box-shadow:0 20px 60px rgba(0,0,0,.55);color:var(--fg)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(540px,92%);max-height:calc(100dvh - 24px);overflow:auto;z-index:10;background:#1a1f26;border:1px solid #2b313a;border-radius:18px;padding:26px 30px 24px;box-shadow:0 20px 60px rgba(0,0,0,.55);color:var(--fg)}
 .modal h2{margin:0 0 14px;font-size:19px}
 .modal ol{margin:0;padding-left:22px}
 .modal li{margin:9px 0;line-height:1.65}
@@ -68,14 +68,14 @@ canvas.eraseMode{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .mrow .lab{color:var(--dim);font-size:12.5px;min-width:74px}
 #humStatus{color:var(--accent);font-size:13px;min-height:19px;margin-top:4px}
 #sampleClose,#humClose{position:absolute;right:14px;top:12px;background:transparent;border:0;color:var(--dim);font-size:18px;padding:4px 8px}
-footer{background:var(--panel);border-top:1px solid #0b0e13;display:flex;flex-direction:column;height:250px;transition:height .18s}
-footer.closed{height:50px}
+footer{background:var(--panel);border-top:1px solid #0b0e13;display:flex;flex-direction:column;flex-shrink:0;height:min(200px,28dvh)}
+footer.closed{height:auto;min-height:50px}
 footer.closed textarea{display:none}
-.ftbar{display:flex;align-items:center;gap:8px;padding:8px 14px}
+.ftbar{display:flex;align-items:center;gap:8px;padding:8px 14px;flex-wrap:wrap;flex-shrink:0}
 .ftinfo{color:var(--dim);font-size:12.5px}
 #warn{color:var(--accent);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 textarea{flex:1;background:#0d1016;color:#c6cdda;border:0;border-top:1px solid var(--line);outline:0;padding:12px 14px;font:12.5px/1.7 Consolas,"D2Coding",monospace;resize:none;white-space:pre;overflow:auto}
-#sampleDialog{width:min(740px,94%);max-height:94%;overflow:auto;z-index:2}
+#sampleDialog{width:min(740px,94%)}
 #sampleDialog audio{width:100%;height:34px}
 #sampleDialog .listen{display:grid;grid-template-columns:85px 1fr;align-items:center;gap:10px;margin:8px 0}
 #sampleDialog .fine{margin:8px 0}
@@ -106,6 +106,10 @@ button:disabled{opacity:.45;cursor:default}
     <button id="helpBtn" class="ghost">도움말</button>
   </div>
   <div class="row sub">
+    <span class="glab">고치는 줄</span>
+    <span id="voiceTabs"></span>
+    <span class="sep"></span>
+
     <span class="glab">도구</span>
     <div class="seg grp" id="tools">
       <button data-t="draw" class="on">그리기</button>
@@ -117,9 +121,6 @@ button:disabled{opacity:.45;cursor:default}
     <div class="seg" id="durBtns">
       <button data-d="96">긴 음</button><button data-d="48">보통</button><button data-d="24">짧게</button><button data-d="12" class="on">더 짧게</button>
     </div>
-    <span class="sep"></span>
-    <span class="glab">고치는 줄</span>
-    <span id="voiceTabs"></span>
     <span class="sep"></span>
     <span class="grp">
       <span class="glab">고른 음</span>
@@ -184,23 +185,23 @@ button:disabled{opacity:.45;cursor:default}
   <div id="sampleDialog" class="modal hidden" role="dialog" aria-label="노래에서 악보 만들기">
     <button id="sampleClose" aria-label="닫기">✕</button>
     <h2>노래에서 악보 만들기</h2>
-    <p class="fine">노래 샘플의 <b>보컬 멜로디 한 줄</b>을 ABC 악보로 만듭니다. 보컬이 또렷한 10~30초 구간부터 시작하세요.</p>
+    <p class="fine"><b>인스 멜로디와 보컬 멜로디를 함께</b> ABC 악보로 만듭니다. 기본은 곡 전체이며, 필요한 구간만 선택할 수도 있습니다.</p>
     <div class="mrow"><label class="btn">노래 파일 선택<input type="file" id="sampleFile" accept="audio/*" hidden></label><span id="sampleName" class="fine">선택한 파일 없음</span></div>
-    <div class="mrow"><label for="sampleFrom">분석 구간</label><input id="sampleFrom" type="number" min="0" step="0.1" value="0"><span>초부터</span><input id="sampleTo" type="number" min="0.2" step="0.1" value="30"><span>초까지 · 최대 90초</span></div>
-    <div class="mrow"><label for="sampleMode">파일 종류</label><select id="sampleMode"><option value="song">반주가 있는 노래 — 보컬 먼저 분리</option><option value="vocal">목소리·단선율만 있는 파일</option></select></div>
+    <div class="mrow"><label for="sampleFrom">분석 시작</label><input id="sampleFrom" type="number" min="0" step="0.1" value="0"><span>초</span><label for="sampleTo">종료</label><input id="sampleTo" type="number" min="0.2" step="0.1" placeholder="끝까지"><span>초 · 비우면 곡 끝까지</span></div>
+    <div class="mrow"><label for="sampleMode">만들 악보</label><select id="sampleMode"><option value="melody">커버용 — 인스·보컬 멜로디</option><option value="full">인스·보컬 멜로디와 코드</option></select></div>
     <p id="sampleSetup" class="fine">분석 환경 확인 중…</p>
     <div class="mrow"><button id="sampleAnalyze" class="play" disabled>선택한 구간 분석</button><button id="sampleCancel" hidden>분석 취소</button></div>
     <progress id="sampleProgress" max="100" value="0"></progress>
     <div id="sampleStatus" role="status" aria-live="polite"></div>
     <div id="samplePreview" hidden>
       <div class="listen"><span>원본 구간</span><audio id="sampleOriginal" controls></audio></div>
-      <div class="listen"><span>분리한 보컬</span><audio id="sampleVocal" controls></audio></div>
-      <div class="listen"><span>추출 멜로디</span><audio id="sampleMelody" controls></audio></div>
+      <div class="listen"><span>보컬 악보</span><audio id="sampleVocal" controls></audio></div>
+      <div class="listen"><span>인스 악보</span><audio id="sampleInstrumental" controls></audio></div>
+      <div class="listen"><span>두 멜로디</span><audio id="sampleMelody" controls></audio></div>
       <p id="sampleSummary" class="fine"></p>
-      <div class="mrow"><label for="sampleBpm" id="sampleTempo">추정 BPM</label><input id="sampleBpm" type="number" min="20" max="300" step="0.01" value="120"><label><input id="sampleQuantize" type="checkbox">박자에 맞춰 다듬기</label></div>
-      <p class="fine">원래 음정과 타이밍을 기본으로 보존합니다. ‘박자에 맞춰 다듬기’는 추정한 박 위치와 위 BPM을 사용합니다. 가사·코드·반주 악보는 추출하지 않습니다.</p>
-      <div class="mrow"><button id="sampleNew" class="play">새 악보로 만들기</button><button id="sampleInsert">현재 줄에 추가</button></div>
-      <p class="fine">새 악보는 현재 내용을 바꾸며 ‘되돌리기’로 복원할 수 있습니다. 현재 줄에 추가하면 기존 악보의 BPM을 유지하고 재생 위치부터 넣습니다.</p>
+      <p class="fine">미리듣기는 채보된 음표를 연주합니다. 원곡에서 분리한 보컬·반주 음성은 아닙니다. 인스는 악기의 주요 멜로디이며 모든 반주 악기를 따로 채보하지는 않습니다.</p>
+      <div class="mrow"><button id="sampleNew" class="play">두 멜로디를 악보로 가져오기</button><a id="sampleDownload" class="btn" download="score.abc">ABC 저장</a><a id="sampleMidi" class="btn" download="transcription.mid">MIDI 저장</a></div>
+      <p class="fine">현재 악보를 바꾸며 ‘되돌리기’로 복원할 수 있습니다. 커버용은 YuE2의 planning을 melody로, 코드 포함 악보는 full로 사용하세요.</p>
     </div>
   </div>
 </div>
@@ -229,13 +230,14 @@ import { PPQ, WHOLE, BASE, LETTERS, SHARP_ORDER, FLAT_ORDER, FIFTH, MODE, VCOLOR
 import { detectPitch, renderMono16k, pitchTrack, medianFilter, scaleSet, snapToScale, trackToNotes } from "./pitch.js";
 /* ===================== 상태 조작 ===================== */
 function pushUndo(){
-  S.undo.push(JSON.stringify({voices:S.voices, chords:S.chords, meta:S.meta, active:S.active, playhead:S.playhead}));
+  S.undo.push(JSON.stringify({voices:S.voices, chords:S.chords, meta:S.meta, active:S.active, playhead:S.playhead, sourceABC:S.sourceABC, sourceNormalized:S.sourceNormalized}));
   if(S.undo.length > 60) S.undo.shift();
 }
 function doUndo(){
   const saved = S.undo.pop(); if(!saved) return;
   const d = JSON.parse(saved);
   S.voices=d.voices; S.chords=d.chords; S.meta=d.meta; S.active=d.active; S.playhead=d.playhead;
+  S.sourceABC=d.sourceABC; S.sourceNormalized=d.sourceNormalized;
   S.sel.clear(); document.getElementById('bpm').value=S.meta.Q.bpm;
   document.getElementById('bpmRange').value=clamp(S.meta.Q.bpm,40,200);
   buildTabs(); sync();
@@ -243,7 +245,17 @@ function doUndo(){
 function loadScore(text){
   const r = parseABC(text);
   S.meta = {X:r.meta.X, T:r.meta.T, M:r.meta.M, L:r.meta.L, Q:r.meta.Q, extra:r.meta.extra, K:r.meta.K};
-  S.voices = r.voices; S.chords = r.chords; S.active = 0; S.sel.clear(); S.undo = []; S.playhead = 0;
+  S.voices = r.voices.length===1 && r.voices[0].id==='1' && !r.voices[0].notes.length ? [] : r.voices;
+  for(const [id,name] of [['Vocal','Vocal Melody'],['Ins','Ins Melody']]){
+    if(!S.voices.some(v=>v.id.toLowerCase()===id.toLowerCase())){
+      const voice=mkVoice(id,S.voices.length); voice.name=name; voice.clef='treble'; voice.snm=id==='Vocal'?'Vocal':'Inst.'; S.voices.push(voice);
+    }
+  }
+  S.chords = r.chords;
+  S.active = S.voices.reduce((best,v,i) => {
+    const first = Math.min(Infinity,...v.notes.map(n=>n.s));
+    return first < best.start ? {index:i,start:first} : best;
+  },{index:0,start:Infinity}).index; S.sel.clear(); S.undo = []; S.playhead = 0;
   const bv = Math.round(S.meta.Q.bpm);
   document.getElementById('bpm').value = bv;
   document.getElementById('bpmRange').value = clamp(bv, 40, 200);
@@ -265,10 +277,12 @@ function loadScore(text){
   S.scrollX = Math.max(0, Math.floor(firstTick / bT0) * bT0 * S.px - 20);
   S.scrollY = any ? (HIMIDI - (lo + hi)/2) * S.rowH - viewH()/2 : 0;
   clampScroll();
+  S.sourceABC=text; S.sourceNormalized=toABC();
   buildTabs(); sync();
 }
 function sync(){
-  document.getElementById('abc').value = toABC();
+  const normalized = toABC();
+  document.getElementById('abc').value = S.sourceABC && normalized===S.sourceNormalized ? S.sourceABC : normalized;
   let cnt = 0; for(const v of S.voices) cnt += v.notes.length;
   document.getElementById('status').textContent =
     S.meta.K + ' 조 · ' + S.meta.M[0] + '/' + S.meta.M[1] + ' 박자 · 음 ' + cnt + '개 · 코드 ' + S.chords.length + '개';
@@ -280,12 +294,19 @@ const cv = document.getElementById('roll');
 const ctx = cv.getContext('2d');
 let W = 0, H = 0;
 function resize(){
-  const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
-  W = r.width; H = r.height;
+  const dpr = window.devicePixelRatio || 1;
+  W = cv.clientWidth; H = cv.clientHeight;
+  if(!W || !H) return;
   cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
-  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.setTransform(cv.width/W,0,0,cv.height/H,0,0);
   draw();
 }
+function pointerPoint(e){
+  if(W !== cv.clientWidth || H !== cv.clientHeight) resize();
+  const r = cv.getBoundingClientRect();
+  return {x:(e.clientX-r.left)*W/r.width, y:(e.clientY-r.top)*H/r.height};
+}
+new ResizeObserver(resize).observe(document.getElementById('rollWrap'));
 const tickToX = t => GL + t * S.px - S.scrollX;
 const xToTick = x => (x - GL + S.scrollX) / S.px;
 const midiToY = p => GT + (HIMIDI - p) * S.rowH - S.scrollY;
@@ -509,7 +530,7 @@ function selInfo(){
 }
 cv.addEventListener('contextmenu', e => {
   e.preventDefault();
-  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  const {x,y} = pointerPoint(e);
   if(y < GT || x < GL) return;
   pushUndo();
   if(eraseAt(x, y)) sync(); else S.undo.pop();
@@ -517,7 +538,7 @@ cv.addEventListener('contextmenu', e => {
 cv.addEventListener('mousedown', e => {
   if(e.button === 2) return;
   document.getElementById('hint').classList.add('gone');
-  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  const {x,y} = pointerPoint(e);
   cv.focus();
   if(e.altKey || e.button === 1){ drag = {mode:'pan', x:x, y:y, sx:S.scrollX, sy:S.scrollY}; return; }
   if(y >= H - GB){ drag = {mode:'mini'}; miniSeek(x); return; }
@@ -564,7 +585,7 @@ cv.addEventListener('mousedown', e => {
   }
 });
 window.addEventListener('mousemove', e => {
-  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  const {x,y} = pointerPoint(e);
   if(!drag){
     if(y >= H - GB || x >= W - SB) cv.style.cursor = 'pointer';
     else if(y < GT || x < GL) cv.style.cursor = 'pointer';
@@ -621,7 +642,7 @@ window.addEventListener('mouseup', () => {
 cv.addEventListener('wheel', e => {
   e.preventDefault();
   if(e.ctrlKey){
-    const r = cv.getBoundingClientRect(), x = e.clientX - r.left;
+    const {x} = pointerPoint(e);
     setZoom(S.zoom * (e.deltaY < 0 ? 1.15 : 1/1.15), Math.max(GL, x));
     return;
   } else if(e.shiftKey){
@@ -633,8 +654,8 @@ cv.addEventListener('wheel', e => {
   draw();
 }, {passive:false});
 cv.addEventListener('dblclick', e => {
-  const r = cv.getBoundingClientRect(), y = e.clientY - r.top;
-  if(y >= GR && y < GT) editChord(snapT(xToTick(e.clientX - r.left)));
+  const {x,y} = pointerPoint(e);
+  if(y >= GR && y < GT) editChord(snapT(xToTick(x)));
 });
 window.addEventListener('keydown', e => {
   if(!document.getElementById('sampleDialog').classList.contains('hidden')) return;
@@ -794,7 +815,7 @@ function buildTabs(){
     const el = document.createElement('span');
     el.className = 'vtab' + (i === S.active ? ' act' : '') + (v.visible ? '' : ' hid');
     const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = v.color;
-    const nm = document.createElement('span'); nm.textContent = v.name || v.id;
+    const nm = document.createElement('span'); nm.textContent = v.id==='Vocal' ? '보컬 멜로디' : v.id==='Ins' ? '인스 멜로디' : v.name || v.id;
     const eye = document.createElement('span'); eye.className = 'eye'; eye.textContent = v.visible ? '보임' : '숨김';
     el.appendChild(dot); el.appendChild(nm); el.appendChild(eye);
     el.onclick = () => { S.active = i; S.sel.clear(); buildTabs(); draw(); };
@@ -1107,7 +1128,7 @@ window.addEventListener('message', e => {
   const d = e.data;
   if(!d || d.source !== 'abc-studio-host') return;
   if(d.type === 'load'){
-    if(typeof d.abc === 'string' && d.abc.trim()) loadScore(d.abc);
+    if(typeof d.abc === 'string') loadScore(d.abc);
     flash('바깥 화면에서 악보를 받아왔어요');
   }
 });
@@ -1119,32 +1140,16 @@ if(EMBED){
     ub.textContent = '보냈어요';
     setTimeout(() => ub.textContent = '이 악보 쓰기', 1400);
   };
-  document.getElementById('txtPanel').classList.remove('closed');
-  document.getElementById('toggleTxt').textContent = '악보 텍스트 접기';
+  // Leave more space for the piano roll; raw ABC is available on demand.
 }
 
-installSampleUI({audioContext:ac, stopPlayback:stopPlay, commit:(notes, options)=>{
-  if(!notes.length) throw new Error('넣을 음이 없습니다.');
-  const scale = options.newScore ? 48*options.bpm/60 : 1/secPerTick();
-  const base = options.newScore ? 0 : Math.max(0,Math.round(S.playhead));
-  const incoming = notes.map(n => ({s:base+Math.round(n.start*scale),
-    d:Math.max(1,Math.round((n.start+n.duration)*scale)-Math.round(n.start*scale)),p:n.pitch}));
-  if(!options.newScore && S.voices[S.active]?.notes.some(old => incoming.some(n => n.s < old.s+old.d && old.s < n.s+n.d)))
-    throw new Error('재생 위치에 기존 음이 있습니다. 빈 구간으로 옮기거나 새 악보로 만드세요.');
+installSampleUI({stopPlayback:stopPlay, commit:(abc)=>{
+  const parsed = parseABC(abc);
+  if(!parsed.voices.some(v=>v.notes.length)) throw new Error('넣을 멜로디가 없습니다.');
   stopPlay(); pushUndo();
-  if(options.newScore){
-    S.meta={X:'1',T:options.title.replace(/[\r\n]/g,' '),M:[4,4],L:[1,16],Q:{unit:[1,4],bpm:options.bpm},extra:[],K:'C'};
-    S.voices=[mkVoice('Vocal',0)]; S.voices[0].name='Vocal Melody';
-    S.chords=[]; S.active=0; S.playhead=0; S.scrollX=0;
-  }
-  if(!S.voices[S.active]){ S.voices.push(mkVoice('Vocal',S.voices.length)); S.active=S.voices.length-1; }
-  S.sel.clear();
-  for(const note of incoming){ S.voices[S.active].notes.push(note); S.sel.add(note); }
-  S.voices[S.active].notes.sort((a,b)=>a.s-b.s);
-  document.getElementById('bpm').value=S.meta.Q.bpm;
-  document.getElementById('bpmRange').value=clamp(S.meta.Q.bpm,40,200);
-  buildTabs(); sync(); document.getElementById('zoomFit').click();
-  flash(notes.length+'개 음을 넣었습니다. 틀린 음은 피아노롤에서 고칠 수 있습니다.');
+  const history = S.undo.slice();
+  loadScore(abc); S.undo = history;
+  flash('인스·보컬 멜로디를 가져왔습니다. 각 줄을 골라 확인하고 고치세요.');
 }});
 
 /* ===================== 시작 ===================== */

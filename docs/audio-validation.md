@@ -1,3 +1,21 @@
+# v0.4.0 SheetSage2 validation (2026-09-13)
+
+Windows / RTX 4070 Ti SUPER 16 GB / ComfyUI 0.35.1, frontend 1.51.10. ComfyUI remains on Python 3.13.12 / Torch 2.12.1+cu130. Transcription uses isolated Python 3.11 / Torch 2.8.0+cu126 / Transformers 4.45.2.
+
+- Official SheetSage2 revision `eab522a8168e8b8b8c4856bf8609cd86198f01fe` and MERT parent `d8ba1c745e733b3908ce6ad16ebeb17ac7600a42`. All installed model/code files verified against the release manifest. Model files total about 2.76 GB.
+- Real 30.02-second song: 52 vocal and 55 instrumental notes; 5.45 seconds transcription/export after model loading; 3370 MiB peak GPU allocation. A separate vocal excerpt produced 94 vocal notes and no instrumental lead, which is retained as an empty Ins part rather than inventing a melody.
+- Long-input test: repeated the 30-second song to 330.26 seconds to exercise the overlap boundary. Two official windows, 572 vocal and 616 instrumental notes, 42.02 seconds after model load, 3380 MiB peak allocation. This is a repeated-audio boundary test, not a broad full-song accuracy benchmark.
+- Live API: a 105-second selection in full-score mode returned 156 vocal and 223 instrumental notes plus chords. Invalid bounds, cancellation before job creation, cancellation after upload, and artifact cleanup passed.
+- Actual ComfyUI browser: upload, separate part previews, import two voices and apply to ABCScoreInput worked. Unedited ABC applied byte-for-byte including section comments. Source/generation connection, disconnect, save/reload and clone retained exactly one applicable studio button and canonical ABC in the execution prompt. The UI button no longer becomes a prompt input.
+- Resizing and collapsing the raw text panel updated the canvas backing size. A real center click created a note at the corresponding displayed piano-roll row. Tested 1100x850 and 800x650 browser viewports; narrow tool rows and dialogs scroll when space is insufficient.
+- YuE2 end-to-end: prompt `95db5330-c804-4db1-ac99-e539033942a8` with both-voice source ABC completed, 31.639-second stereo FLAC. The specific previously failing excerpt was rerun as `01af7ad0-cd4b-4144-bdbc-69111c47d266` with the same style/lyrics/seed and only the supplied score changed: 31.479 seconds instead of 89.919 seconds. No ABC or semantic truncation.
+- A diagnostic retranscription of that original excerpt and the old/new generated audio gave normalized vocal pitch-class sequence edit similarity 0.2303 -> 0.9468 (94 source notes, 165 old output notes, 93 new output notes). This is a single-example, SheetSage2-derived comparison; it is not listener acceptance, timing accuracy, or a general transcription F1 score. The full source and the excerpt are different recordings despite similar filenames.
+- Isolated runtime install and the no-Python-3.11 fallback download/extraction ran successfully. Portable fallback reported Python 3.11.16. Existing ComfyUI package preservation is additionally checked by the combined installer audit.
+
+No promise of exact waveform, singing voice, lyric alignment or duration is made. Instrumental melody is the principal instrumental lead, not full orchestration. Microphone takes still use the lightweight browser detector with an explicit Vocal/Ins destination; they do not classify timbre automatically.
+
+The following notes concern the superseded v0.3.0 CPU transcription path.
+
 # 노래 샘플 채보 검증
 
 2026-09-12, Windows / ComfyUI 0.35.1 / Python 3.13.12 / Torch 2.12.1+cu130 / torchaudio 2.11.0+cu130 / librosa 0.11.0. CPU 분석.
