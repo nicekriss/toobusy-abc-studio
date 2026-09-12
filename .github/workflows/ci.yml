@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  python:
+    name: Python (node registration / syntax)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Byte-compile the package
+        run: python -m compileall -q .
+      - name: Node behaviour regression tests (no ComfyUI runtime)
+        run: |
+          for f in tests/test_*.py; do
+            echo "== $f =="
+            python "$f"
+          done
+
+  js:
+    name: Frontend JS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Parse every frontend module (ESM syntax check)
+        run: npx --yes esbuild js/*.js js/abc_studio/*.js --outdir=/tmp/esbuild-check --format=esm --log-level=warning
+      - name: Frontend unit tests
+        run: |
+          for f in tests/js/*.test.mjs; do
+            echo "== $f =="
+            node "$f"
+          done
