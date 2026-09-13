@@ -97,6 +97,41 @@ button:disabled{opacity:.45;cursor:default}
     <input id="bpmRange" type="range" min="40" max="200" step="1" value="91">
     <input id="bpm" type="number" min="20" max="300" step="1" value="91"><span class="unit">BPM</span>
     <span class="sep"></span>
+    <span class="glab">조</span>
+    <select id="keySel" title="악보의 조. 음 높이는 그대로 두고 조표만 바뀝니다">
+      <optgroup label="장조">
+        <option value="C">C 장조</option>
+        <option value="G">G 장조</option>
+        <option value="D">D 장조</option>
+        <option value="A">A 장조</option>
+        <option value="E">E 장조</option>
+        <option value="B">B 장조</option>
+        <option value="F#">F♯ 장조</option>
+        <option value="F">F 장조</option>
+        <option value="Bb">B♭ 장조</option>
+        <option value="Eb">E♭ 장조</option>
+        <option value="Ab">A♭ 장조</option>
+        <option value="Db">D♭ 장조</option>
+      </optgroup>
+      <optgroup label="단조">
+        <option value="Am">A 단조</option>
+        <option value="Em">E 단조</option>
+        <option value="Bm">B 단조</option>
+        <option value="F#m">F♯ 단조</option>
+        <option value="C#m">C♯ 단조</option>
+        <option value="G#m">G♯ 단조</option>
+        <option value="Dm">D 단조</option>
+        <option value="Gm">G 단조</option>
+        <option value="Cm">C 단조</option>
+        <option value="Fm">F 단조</option>
+        <option value="Bbm">B♭ 단조</option>
+        <option value="Ebm">E♭ 단조</option>
+      </optgroup>
+      <optgroup label="기타">
+        <option value="none">조표 없음</option>
+      </optgroup>
+    </select>
+    <span class="sep"></span>
     <label class="pill on"><input type="checkbox" id="chordSound" checked><span>코드 반주</span></label>
     <label class="pill"><input type="checkbox" id="metro"><span>박자 소리</span></label>
     <span class="grow"></span>
@@ -226,7 +261,7 @@ import { MIC_ROLES, microphoneTarget, planMicrophoneTake, validateMicrophoneTake
 /* =========================================================
    ABC 스튜디오 - ABC 표기법을 피아노롤로 열고 다시 ABC로 저장
    ========================================================= */
-import { PPQ, WHOLE, BASE, LETTERS, SHARP_ORDER, FLAT_ORDER, FIFTH, MODE, VCOLORS, DIMNOTE, LOMIDI, HIMIDI, NROWS, GL, GR, GC, GT, GB, SB, BASE_PX, BASE_ROW, NOTE_KO, BLACK, clamp, gcd, S, barTicks, unitTicks, secPerTick, keyInfo, mkVoice, parseABC, lenStr, pitchStr, toABC, voiceBody } from "./score.js";
+import { PPQ, WHOLE, BASE, LETTERS, SHARP_ORDER, FLAT_ORDER, FIFTH, MODE, VCOLORS, DIMNOTE, LOMIDI, HIMIDI, NROWS, GL, GR, GC, GT, GB, SB, BASE_PX, BASE_ROW, NOTE_KO, BLACK, clamp, gcd, S, barTicks, unitTicks, secPerTick, keyInfo, scalePitchClasses, mkVoice, parseABC, lenStr, pitchStr, toABC, voiceBody } from "./score.js";
 import { detectPitch, renderMono16k, pitchTrack, medianFilter, scaleSet, snapToScale, trackToNotes } from "./pitch.js";
 /* ===================== 상태 조작 ===================== */
 function pushUndo(){
@@ -240,6 +275,7 @@ function doUndo(){
   S.sourceABC=d.sourceABC; S.sourceNormalized=d.sourceNormalized;
   S.sel.clear(); document.getElementById('bpm').value=S.meta.Q.bpm;
   document.getElementById('bpmRange').value=clamp(S.meta.Q.bpm,40,200);
+  syncKeySelect();
   buildTabs(); sync();
 }
 function loadScore(text){
@@ -259,6 +295,7 @@ function loadScore(text){
   const bv = Math.round(S.meta.Q.bpm);
   document.getElementById('bpm').value = bv;
   document.getElementById('bpmRange').value = clamp(bv, 40, 200);
+  syncKeySelect();
   document.getElementById('warn').textContent = r.warns.join(' / ');
   let lo = HIMIDI, hi = LOMIDI, any = false;
   for(const v of S.voices) for(const n of v.notes){ lo = Math.min(lo,n.p); hi = Math.max(hi,n.p); any = true; }
@@ -383,10 +420,11 @@ function draw(){
   ctx.save();
   ctx.beginPath(); ctx.rect(GL, GT, viewW(), viewH()); ctx.clip();
 
+  const inKey = scalePitchClasses(S.meta.K);
   for(let p = HIMIDI; p >= LOMIDI; p--){
     const y = midiToY(p), pc = ((p % 12) + 12) % 12;
     if(y + S.rowH < GT || y > rb) continue;
-    ctx.fillStyle = BLACK[pc] ? '#f7f8fa' : '#ffffff';
+    ctx.fillStyle = !inKey.has(pc) ? '#e9ebf0' : BLACK[pc] ? '#f7f8fa' : '#ffffff';
     ctx.fillRect(GL, y, viewW(), S.rowH);
     if(pc === 0){ ctx.fillStyle = '#e8eaee'; ctx.fillRect(GL, y + S.rowH - 1, viewW(), 1); }
   }
@@ -869,6 +907,26 @@ function setBpm(v){
 }
 $('bpm').onchange = e => setBpm(e.target.value);
 $('bpmRange').oninput = e => setBpm(e.target.value);
+function syncKeySelect(){
+  const sel = $('keySel'), k = String(S.meta.K || 'C');
+  for(const extra of [...sel.querySelectorAll('option[data-loaded]')]) extra.remove();
+  if(![...sel.options].some(o => o.value === k)){
+    // Files may carry modes or spellings the list does not offer. Show the
+    // real value rather than silently snapping the score to a nearby key.
+    const opt = document.createElement('option');
+    opt.value = k; opt.textContent = k + ' (악보에 적힌 조)'; opt.dataset.loaded = '1';
+    sel.appendChild(opt);
+  }
+  sel.value = k;
+}
+function setKey(v){
+  // Only the key signature changes. Pitches stay where they are and the
+  // exporter writes whatever accidentals the new signature needs.
+  S.meta.K = String(v || 'C');
+  syncKeySelect();
+  sync();
+}
+$('keySel').onchange = e => setKey(e.target.value);
 $('tools').onclick = e => {
   const b = e.target.closest('button'); if(!b) return;
   for(const x of $('tools').children) x.classList.toggle('on', x === b);

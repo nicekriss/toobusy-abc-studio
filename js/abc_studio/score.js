@@ -45,6 +45,17 @@ function keyInfo(kstr){
   if(n<0) for(let i=0;i<-n;i++) acc[FLAT_ORDER[i]]  = -1;
   return {acc, n};
 }
+/* The seven pitch classes the key actually uses. The roll shades everything
+   else, so a beginner can see which rows belong to the chosen key without
+   reading a key signature. */
+function scalePitchClasses(kstr){
+  // K:none carries no key signature at all, so nothing is out of key there.
+  if(/^(none|hp)/i.test(String(kstr||'').trim())) return new Set([0,1,2,3,4,5,6,7,8,9,10,11]);
+  const acc = keyInfo(kstr).acc;
+  const set = new Set();
+  for(const L of LETTERS) set.add((((BASE[L] + acc[L]) % 12) + 12) % 12);
+  return set;
+}
 function mkVoice(id, idx){
   return {id:id, name:id, snm:'', clef:'', notes:[], visible:true, color:VCOLORS[idx % VCOLORS.length]};
 }
@@ -410,4 +421,4 @@ function voiceBody(v, withChords, bars, uT, bT, ki){
 }
 
 
-export { PPQ, WHOLE, BASE, LETTERS, SHARP_ORDER, FLAT_ORDER, FIFTH, MODE, VCOLORS, DIMNOTE, LOMIDI, HIMIDI, NROWS, GL, GR, GC, GT, GB, SB, BASE_PX, BASE_ROW, NOTE_KO, BLACK, clamp, gcd, S, barTicks, unitTicks, secPerTick, keyInfo, mkVoice, parseABC, lenStr, pitchStr, toABC, voiceBody };
+export { PPQ, WHOLE, BASE, LETTERS, SHARP_ORDER, FLAT_ORDER, FIFTH, MODE, VCOLORS, DIMNOTE, LOMIDI, HIMIDI, NROWS, GL, GR, GC, GT, GB, SB, BASE_PX, BASE_ROW, NOTE_KO, BLACK, clamp, gcd, S, barTicks, unitTicks, secPerTick, keyInfo, scalePitchClasses, mkVoice, parseABC, lenStr, pitchStr, toABC, voiceBody };
