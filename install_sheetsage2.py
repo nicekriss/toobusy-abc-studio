@@ -15,6 +15,14 @@ import urllib.request
 
 HERE = Path(__file__).resolve().parent
 
+# RTX 50 series is sm_120. The cu126 build carries no kernels for it, so the
+# transcriber died on its first CUDA call. cu128 is the newest CUDA build
+# published for this pinned Torch version and it covers sm_120.
+TORCH_VERSION = '2.8.0'
+TORCH_CUDA = 'cu128'
+TORCH_BUILD = TORCH_VERSION + '+' + TORCH_CUDA
+TORCH_INDEX = 'https://download.pytorch.org/whl/' + TORCH_CUDA
+
 
 def sha256(path):
     digest = hashlib.sha256()
@@ -89,16 +97,78 @@ def verify_models(root, manifest):
                 raise RuntimeError(f'SheetSage2 model check failed: {path}')
 
 
+def installed_build(python):
+    """Return the Torch build already present in the runtime, or None."""
+    try:
+        return run([python,'-c','import torch;print(torch.__version__)'], capture=True).stdout.strip() or None
+    except subprocess.CalledProcessError:
+        return None
+
+
+def install_torch(python):
+    # pip counts 2.8.0+cu126 as satisfying torch==2.8.0, so an older CUDA build
+    # survives a plain reinstall and every later check keeps failing. Compare
+    # the whole build string and replace the package when it differs.
+    command = [python,'-m','pip','install',f'torch=={TORCH_VERSION}',f'torchaudio=={TORCH_VERSION}',
+               '--index-url',TORCH_INDEX,'--disable-pip-version-check']
+    present = installed_build(python)
+    if present is not None and present != TORCH_BUILD:
+        print(f'Replacing {present} with {TORCH_BUILD}', flush=True)
+        command.append('--force-reinstall')
+    run(command)
+
+
+# The runtime reports facts and this file judges them. Keeping the judgement
+# here makes it testable and puts every message in one place.
+RUNTIME_FACTS = '''import json,sys,torch,torchaudio,transformers,numpy,scipy,mir_eval,pretty_midi
+ready = torch.cuda.is_available()
+print(json.dumps({'python':list(sys.version_info[:2]),'isolated':sys.prefix != sys.base_prefix,
+                  'torch':torch.__version__,'torchaudio':torchaudio.__version__,
+                  'transformers':transformers.__version__,'cuda':ready,
+                  'gpu':torch.cuda.get_device_name(0) if ready else None,
+                  'arch':('sm_%d%d' % torch.cuda.get_device_capability(0)) if ready else None,
+                  'builds':torch.cuda.get_arch_list()}))'''
+
+RUNTIME_KERNEL = '''import torch
+torch.matmul(torch.ones(64,64,device='cuda'),torch.ones(64,64,device='cuda')).sum().item()'''
+
+
+def verify_facts(facts):
+    if tuple(facts['python']) != (3,11):
+        raise RuntimeError('SheetSage2 런타임은 Python 3.11 이어야 합니다: ' + str(facts['python']))
+    if not facts['isolated']:
+        raise RuntimeError('SheetSage2 runtime must not share ComfyUI packages')
+    if facts['torch'] != TORCH_BUILD:
+        raise RuntimeError('Torch 가 ' + facts['torch'] + ' 입니다. ' + TORCH_BUILD + ' 이 필요합니다.')
+    if facts['torchaudio'].split('+')[0] != TORCH_VERSION:
+        raise RuntimeError('torchaudio 가 ' + facts['torchaudio'] + ' 입니다.')
+    if facts['transformers'] != '4.45.2':
+        raise RuntimeError('transformers 가 ' + facts['transformers'] + ' 입니다.')
+    if not facts['cuda']:
+        raise RuntimeError('채보에 사용할 NVIDIA GPU 를 찾지 못했습니다.')
+    # torch.cuda.is_available() stays true on a card this build has no kernels
+    # for. That is why the old check passed on RTX 50 and the failure only
+    # appeared once a song was already being analysed.
+    if facts['arch'] not in facts['builds']:
+        raise RuntimeError(
+            str(facts['gpu']) + ' 는 ' + str(facts['arch']) + ' 인데 설치된 Torch 는 '
+            + ' '.join(facts['builds']) + ' 만 담고 있습니다. '
+            '이 그래픽카드를 지원하는 Torch 빌드가 필요합니다. 최신 설치기를 다시 실행하세요.')
+
+
+def probe(python, source):
+    try:
+        return run([python,'-c',source], capture=True).stdout.strip()
+    except subprocess.CalledProcessError as failure:
+        detail = (failure.stderr or '').strip().splitlines()
+        raise RuntimeError('SheetSage2 실행 환경 검사 실패: ' + (detail[-1] if detail else 'no detail')) from None
+
+
 def check_runtime(python):
-    source = '''import json,sys,torch,torchaudio,transformers,numpy,scipy,mir_eval,pretty_midi
-assert sys.version_info[:2] == (3,11)
-assert sys.prefix != sys.base_prefix
-assert torch.__version__.split('+')[0] == '2.8.0'
-assert torchaudio.__version__.split('+')[0] == '2.8.0'
-assert transformers.__version__ == '4.45.2'
-assert torch.cuda.is_available(), 'NVIDIA CUDA unavailable'
-print(json.dumps({'torch':torch.__version__,'gpu':torch.cuda.get_device_name(0)}))'''
-    print(run([python,'-c',source], capture=True).stdout.strip(), flush=True)
+    facts = json.loads(probe(python, RUNTIME_FACTS))
+    verify_facts(facts)
+    probe(python, RUNTIME_KERNEL)
+    print(json.dumps({'torch':facts['torch'],'gpu':facts['gpu'],'arch':facts['arch']}), flush=True)
 
 
 def main():
@@ -134,7 +204,7 @@ def main():
         marker.write_text('SheetSage2 isolated runtime\n',encoding='utf-8')
     if 'include-system-site-packages = false' not in (runtime/'pyvenv.cfg').read_text().lower():
         raise RuntimeError('SheetSage2 runtime must not share ComfyUI packages')
-    run([python,'-m','pip','install','torch==2.8.0','torchaudio==2.8.0','--index-url','https://download.pytorch.org/whl/cu126','--disable-pip-version-check'])
+    install_torch(python)
     run([python,'-m','pip','install','-r',HERE/'requirements-sheetsage.txt','--disable-pip-version-check'])
     check_runtime(python)
     models = (args.models or comfy/'models').resolve()/'abc_studio'

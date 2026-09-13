@@ -57,5 +57,18 @@ class StatusWriteTests(unittest.TestCase):
             self.assertEqual(replace.call_count, 1)
 
 
+class ExplainTests(unittest.TestCase):
+    def test_unsupported_card_gets_korean_guidance(self):
+        raw = RuntimeError(
+            'CUDA error: no kernel image is available for execution on the device '
+            'CUDA kernel errors might be asynchronously reported at some other API call')
+        message = worker.explain(raw)
+        self.assertIn('설치기', message)
+        self.assertNotIn('CUDA error', message)
+
+    def test_other_failures_are_passed_through(self):
+        self.assertEqual(worker.explain(ValueError('음원을 읽지 못했습니다')), '음원을 읽지 못했습니다')
+
+
 if __name__ == '__main__':
     unittest.main()
