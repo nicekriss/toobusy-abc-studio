@@ -1,7 +1,7 @@
 [project]
 name = "toobusy-abc-studio"
 description = "ComfyUI 안에서 피아노롤로 멜로디를 그려 ABC 악보 텍스트로 만드는 편집기."
-version = "0.4.1"
+version = "0.4.2"
 license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.10"

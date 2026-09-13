@@ -14,6 +14,21 @@ os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
 
 
+def explain(exc):
+    """Say what an unsupported-card CUDA failure means and how to fix it.
+
+    A Torch built without kernels for this GPU still reports CUDA as
+    available, so the first model call is where it shows up, wearing an
+    English message that says nothing about what to do. The console keeps
+    the full traceback.
+    """
+    text = str(exc)
+    if "no kernel image is available" in text:
+        return ("이 그래픽카드를 지원하지 않는 Torch 가 채보 환경에 깔려 있습니다. "
+                "최신 설치기를 다시 실행하면 맞는 버전으로 바뀝니다.")
+    return text
+
+
 def write_json(path, value):
     temporary = path.with_suffix(".tmp")
     temporary.write_text(json.dumps(value, ensure_ascii=False, allow_nan=False), encoding="utf-8")
@@ -121,5 +136,5 @@ if __name__ == "__main__":
     except Exception as exc:
         import traceback
         traceback.print_exc()
-        write_json(directory / "status.json", {"state": "error", "message": str(exc)})
+        write_json(directory / "status.json", {"state": "error", "message": explain(exc)})
         sys.exit(1)

@@ -124,10 +124,14 @@ python custom_nodes/toobusy-abc-studio/install_sheetsage2.py --comfyui "D:/Comfy
 ### 실행 환경
 
 - 공식 [SheetSage2](https://huggingface.co/m-a-p/SheetSage2)와 [MERT-v2-FullSong](https://huggingface.co/m-a-p/MERT-v2-FullSong)을 고정 revision과 SHA256으로 받는다. 모델은 약 2.76 GB이며 가중치 라이선스는 CC BY-NC 4.0이다.
-- `user/abc-studio/runtime`에 Python 3.11, Torch/torchaudio 2.8.0, Transformers 4.45.2 등 전용 패키지를 설치한다. ComfyUI와 YuE2의 기존 패키지는 교체하지 않는다. 런타임과 다운로드 캐시를 포함해 추가 여유 공간 약 12 GB를 준비한다.
+- `user/abc-studio/runtime`에 Python 3.11, Torch/torchaudio 2.8.0+cu128, Transformers 4.45.2 등 전용 패키지를 설치한다. 이 패키지들은 ComfyUI가 쓰는 버전과 함께 설치할 수 없어 환경을 따로 둔다. ComfyUI와 YuE2의 기존 패키지는 교체하지 않는다. 런타임과 다운로드 캐시를 포함해 추가 여유 공간 약 12 GB를 준비한다.
 - 모델은 `models/abc_studio/SheetSage2`, `models/abc_studio/MERT-v2-FullSong`에 둔다. 설치 설정은 `user/abc-studio/setup.json`에 저장한다.
 - 공식 300초 창과 겹침 문맥으로 긴 음원을 이어 분석한다. GPU 프로세스는 작업 후 종료하며 진행률과 취소를 제공한다. 임시 작업은 취소·서버 종료 또는 만료 시 정리한다.
 - 음원은 접속한 ComfyUI 서버에서 분석한다. 외부 채보 API를 호출하지 않는다.
+- 설치 끝에 그래픽카드가 설치된 Torch의 지원 목록에 있는지 대조하고 CUDA 커널을 한 번 실행한다. 지원하지 않는 카드면 곡을 분석하기 전에 설치가 멈춘다.
+
+> **RTX 50 시리즈에서 "no kernel image is available" 오류가 났다면** v0.4.1 이하로 설치된 것이다.
+> 그 버전은 sm_120 커널이 없는 cu126 Torch를 깔았다. 최신 설치기를 다시 실행하면 교체된다.
 
 ### 범위
 
