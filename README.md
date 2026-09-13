@@ -93,7 +93,7 @@ python custom_nodes/toobusy-abc-studio/install_sheetsage2.py --comfyui "D:/Comfy
 
 `--comfyui`에는 `main.py`가 있는 실제 경로를 넣는다. `--models`로 모델 루트, `--user-directory`로 별도 사용자 폴더도 지정할 수 있다. 설치기는 Python 3.11을 찾아 전용 환경을 만들고, 없으면 고정된 Astral python-build-standalone을 내려받는다. 관리자 권한이나 시스템 Python 교체는 필요 없다.
 
-[YuE2 통합 설치기](https://github.com/nicekriss/2BZ-ComfyUI-Workflows/releases/tag/yue2-v0.1.0-rc7)는 이 단계까지 함께 처리한다. 업데이트 후 ComfyUI를 재시작하고 스튜디오를 다시 연다.
+[YuE2 통합 설치기](https://github.com/nicekriss/2BZ-ComfyUI-Workflows/releases/tag/yue2-v0.1.0-rc8)는 이 단계까지 함께 처리한다. 업데이트 후 ComfyUI를 재시작하고 스튜디오를 다시 연다.
 
 ## 허밍·가사 노래를 따로 녹음하기
 
