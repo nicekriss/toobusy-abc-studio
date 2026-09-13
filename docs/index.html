@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="애국가 원본을 ABC 악보로 채보하고 YuE2로 만든 헤비메탈·K-pop 댄스 편곡을 비교해 들어보세요.">
+  <title>원곡에서 새로운 편곡으로 · ABC 악보 스튜디오</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #11151e; color: #f3f5fa; font: 16px/1.7 system-ui, sans-serif; }
+    main { max-width: 1160px; margin: auto; padding: 56px 24px; }
+    a { color: #b8edff; text-underline-offset: 4px; }
+    .brand { color: #9deac4; font-size: 14px; font-weight: 700; letter-spacing: .12em; }
+    h1 { font-size: clamp(30px, 5vw, 48px); line-height: 1.25; margin: 16px 0; }
+    .intro { color: #b5bfd1; max-width: 760px; }
+    .steps { margin: 24px 0 32px; color: #e1e7f0; font-weight: 600; }
+    .tracks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+    article { background: #1b2230; border: 1px solid #374154; border-radius: 16px; padding: 24px; scroll-margin-top: 24px; }
+    article:target { border-color: #9deac4; }
+    .number { color: #9deac4; font-size: 13px; font-weight: 700; }
+    h2 { font-size: 24px; margin: 8px 0; }
+    .detail { color: #b5bfd1; font-size: 14px; min-height: 52px; }
+    audio { width: 100%; display: block; margin: 24px 0 16px; }
+    .download { font-size: 14px; }
+    .tracks.source { grid-template-columns: 1fr; }
+    .source audio { max-width: 560px; }
+    .tracks.arrangements { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .score { margin-top: 24px; }
+    .score img { display: block; width: 100%; height: auto; margin: 20px 0; border-radius: 12px; }
+    .score audio { max-width: 560px; }
+    .time { color: #9deac4; font-size: 14px; }
+    .time span { color: #b5bfd1; }
+    details { margin-top: 18px; font-size: 14px; }
+    summary { cursor: pointer; color: #b8edff; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.7 ui-monospace, monospace; }
+    footer { margin-top: 36px; border-top: 1px solid #374154; padding-top: 24px; color: #b5bfd1; font-size: 14px; }
+    footer p { max-width: 940px; }
+    @media (max-width: 850px) { .tracks, .tracks.arrangements { grid-template-columns: 1fr; } main { padding: 32px 18px; } .detail { min-height: 0; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <a class="brand" href="https://github.com/nicekriss/toobusy-abc-studio">ABC 악보 스튜디오</a>
+      <h1>원곡에서 악보로, 악보에서 새 편곡으로</h1>
+      <p class="intro">애국가 합창 음원 전체에서 멜로디를 ABC 악보로 추출한 뒤, YuE2에 1~4절 가사와 함께 넣었습니다. 원본과 두 가지 장르 편곡을 차례로 들어보세요.</p>
+      <p class="steps">원본 음원 → SheetSage2 채보 → ABC 악보 → YuE2 장르 편곡</p>
+      <p><a href="#abc-score">악보로 바꾸면 어떻게 들릴까요? →</a></p>
+    </header>
+    <section class="tracks source" aria-label="채보에 사용한 원본 음원">
+      <article id="original">
+        <span class="number">01 · SOURCE</span>
+        <h2>원본</h2>
+        <p class="detail">2018 애국가 합창 · 1~4절<br>4분 21초 · 채보에 사용한 음원</p>
+        <audio controls preload="none" aria-label="애국가 원본 합창 재생" src="audio/aegukga-original.mp3"></audio>
+        <a class="download" href="audio/aegukga-original.mp3" download>원본 MP3 다운로드</a>
+      </article>
+    </section>
+    <article id="abc-score" class="score">
+      <span class="number">원본 → ABC 악보</span>
+      <h2>악보로 바꾸면 이렇게 됩니다</h2>
+      <p class="intro">채보한 ABC를 피아노롤로 표시한 초반 21마디입니다. 초록은 보컬 멜로디, 분홍은 악기 주요 멜로디입니다. 전체 악보에는 1~4절이 들어 있습니다.</p>
+      <img src="examples/aegukga-score-preview.svg" alt="애국가 ABC 채보 결과: 전주와 1절·후렴의 보컬 및 악기 멜로디 피아노롤" width="1100" height="490" loading="lazy">
+      <h3>추출한 음표 연주 듣기 · 1~4절 전체</h3>
+      <p class="intro">채보된 음표를 합성음으로 연주한 미리듣기입니다. 원본에서 보컬·반주를 분리한 음원이 아니며, 가사나 원래 악기의 음색은 포함하지 않습니다.</p>
+      <audio controls preload="none" aria-label="ABC 채보 음표 연주 재생" src="audio/aegukga-abc-preview.mp3"></audio>
+      <p><a href="audio/aegukga-abc-preview.mp3" download>음표 연주 MP3</a> · <a href="examples/aegukga-source.abc" download>1~4절 전체 ABC 악보</a></p>
+      <details><summary>ABC 텍스트 표기 예시 · 보컬 첫 4마디</summary><pre>X:1
+T:Aegukga - vocal excerpt
+M:4/4
+L:1/16
+Q:1/4=64
+K:A
+e4a6g2f4|a4e4c4e4|a4b2c'2d'6c'2|b12z4|</pre></details>
+    </article>
+    <h2>이 악보로 만든 장르 편곡</h2>
+    <section class="tracks arrangements" aria-label="YuE2 장르 편곡 비교">
+      <article id="heavy-metal">
+        <span class="number">02 · YuE2 ARRANGEMENT</span>
+        <h2>헤비메탈</h2>
+        <p class="detail">디스토션 기타 · 더블 킥 · 남성 보컬<br>2분 7초 · 132 BPM</p>
+        <audio controls preload="none" aria-label="애국가 헤비메탈 편곡 재생" src="audio/aegukga-heavy-metal.mp3"></audio>
+        <a class="download" href="audio/aegukga-heavy-metal.mp3" download>헤비메탈 MP3 다운로드</a>
+        <p class="time">생성 시간 <strong>3분 48초</strong> <span>(227.8초)</span></p>
+        <details>
+          <summary>사용한 프롬프트 보기</summary>
+          <pre>Epic Korean heavy metal anthem, 132 BPM, thick distorted rhythm guitars, palm-muted chugging riffs, double kick drums, powerful snare, driving bass guitar, twin lead guitar harmonies, soaring gritty male lead singer, triumphant gang-vocal chorus, tight modern metal production, energetic dramatic arrangement. Korean language vocals, perform all four verses and every repeated chorus exactly in the supplied order, clear intelligible Korean diction, recognizable Aegukga vocal melody from the supplied score, complete song with a resolved final cadence, no spoken introduction, no additional lyrics. </pre>
+          <p>Seed: 913101 · planning: melody</p>
+          <a href="examples/aegukga-heavy-metal.json" download>전체 생성 설정 JSON · 프롬프트·가사·ABC·시드</a>
+        </details>
+      </article>
+      <article id="kpop-dance">
+        <span class="number">03 · YuE2 ARRANGEMENT</span>
+        <h2>K-pop 댄스</h2>
+        <p class="detail">댄스 비트 · 신스 베이스 · 여성 보컬<br>2분 13초 · 128 BPM</p>
+        <audio controls preload="none" aria-label="애국가 K-pop 댄스 편곡 재생" src="audio/aegukga-kpop-dance.mp3"></audio>
+        <a class="download" href="audio/aegukga-kpop-dance.mp3" download>K-pop 댄스 MP3 다운로드</a>
+        <p class="time">생성 시간 <strong>4분 7초</strong> <span>(247.3초)</span></p>
+        <details>
+          <summary>사용한 프롬프트 보기</summary>
+          <pre>High-energy K-pop dance anthem, 128 BPM, bright expressive female lead vocals, layered pop vocal harmonies, four-on-the-floor kick, crisp claps, pumping synth bass, sparkling synth arpeggios, euphoric dance-pop chorus, rhythmic verses, modern glossy K-pop production, catchy melodic vocal delivery and a big final chorus. Korean language vocals, perform all four verses and every repeated chorus exactly in the supplied order, clear intelligible Korean diction, recognizable Aegukga vocal melody from the supplied score, complete song with a resolved final cadence, no spoken introduction, no additional lyrics. </pre>
+          <p>Seed: 913103 · planning: melody</p>
+          <a href="examples/aegukga-kpop-dance.json" download>전체 생성 설정 JSON · 프롬프트·가사·ABC·시드</a>
+        </details>
+      </article>
+    </section>
+
+    <p class="intro">생성 시간은 RTX 3090 24GB · torch-eager/SDPA 환경의 YuE2 기록값입니다. 별도의 ABC 채보, MP3 변환·업로드 시간은 제외했으며 환경에 따라 달라집니다. 원본은 기존 합창 음원이므로 생성 시간이 없습니다.</p>
+    <details><summary>두 편곡에 입력한 공통 가사 · 1~4절 전체</summary><pre>[Verse 1]
+동해물과 백두산이 마르고 닳도록
+하느님이 보우하사 우리나라 만세
+
+[Chorus]
+무궁화 삼천리 화려강산
+대한 사람 대한으로 길이 보전하세
+
+[Verse 2]
+남산 위에 저 소나무 철갑을 두른 듯
+바람서리 불변함은 우리 기상일세
+
+[Chorus]
+무궁화 삼천리 화려강산
+대한 사람 대한으로 길이 보전하세
+
+[Verse 3]
+가을 하늘 공활한데 높고 구름 없이
+밝은 달은 우리 가슴 일편단심일세
+
+[Chorus]
+무궁화 삼천리 화려강산
+대한 사람 대한으로 길이 보전하세
+
+[Verse 4]
+이 기상과 이 맘으로 충성을 다하여
+괴로우나 즐거우나 나라 사랑하세
+
+[Chorus]
+무궁화 삼천리 화려강산
+대한 사람 대한으로 길이 보전하세
+</pre></details>
+    <footer>
+      <p>편곡에는 채보한 선율과 1~4절 가사·각 절의 후렴을 입력하고 템포와 스타일을 바꿨습니다. 두 편곡 모두 <code>planning=melody</code>로 생성했습니다. 자동 채보·생성 특성상 음표나 가사 발음에 차이가 있을 수 있습니다.</p>
+      <p>원본: <a href="https://gongu.copyright.or.kr/gongu/wrt/wrt/view.do?wrtSn=13211046&amp;menuNo=200020">2018 애국가(합창) 1~4절 · 한국저작권위원회 공유마당</a><br>안익태 작곡 · 박인영 편곡 · 서울시립교향악단 · 서울시합창단. 공유마당의 ‘자유이용 기증’ 표시 음원이며 원본 파일은 변경 없이 제공합니다. 헤비메탈과 K-pop 댄스는 해당 원음에서 추출한 악보를 조건으로 새로 생성한 AI 편곡입니다.</p>
+      <p>YuE2 모델 가중치: <a href="https://huggingface.co/m-a-p/YuE2-3B">CC BY-NC 4.0</a>. 이 저장소의 MIT 라이선스는 소스 코드에 적용되며, 원본 음원의 이용 조건은 위 출처를 따릅니다.</p>
+      <p><a href="https://github.com/nicekriss/toobusy-abc-studio#readme">스튜디오 설치·사용 방법으로 돌아가기</a></p>
+    </footer>
+  </main>
+  <script>
+    const players = document.querySelectorAll('audio');
+    players.forEach(player => player.addEventListener('play', () => {
+      players.forEach(other => { if (other !== player) other.pause(); });
+    }));
+  </script>
+</body>
+</html>
