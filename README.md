@@ -6,6 +6,52 @@ YuE2 · Generate Song 같은 노드에는 ABC 악보를 받는 `abc` 텍스트 �
 ABC는 사람이 손으로 쓰기 어려운 표기법이라 사실상 비워 두게 된다.
 **ABC 악보 입력**에서 스튜디오를 열어 편집한다. 이 입력 노드를 생성 노드에 연결하면 생성 쪽의 중복 버튼은 숨긴다. 연결을 빼고 생성 노드를 단독으로 사용할 때는 생성 쪽에서 직접 스튜디오를 열 수 있다.
 
+## 🎧 원본 → 장르 편곡 들어보기
+
+애국가 합창 음원 전체를 **SheetSage2 → ABC 악보**로 채보하고, **YuE2**에 1~4절 가사와 함께 넣어 편곡했다. 같은 선율에서 템포와 장르를 바꾼 예시다.
+
+### [▶ 세 곡 비교 플레이어 열기](https://nicekriss.github.io/toobusy-abc-studio/)
+
+### 원곡을 ABC 악보로 바꾸면?
+
+![애국가 ABC 채보 결과 — 전주와 1절·후렴의 보컬·악기 멜로디 피아노롤](docs/examples/aegukga-score-preview.svg)
+
+[▶ 채보한 음표 연주 듣기](https://nicekriss.github.io/toobusy-abc-studio/#abc-score) · [1~4절 전체 ABC 악보](docs/examples/aegukga-source.abc)
+
+초록은 보컬, 분홍은 악기 주요 멜로디다. 이미지는 초반 21마디이며, 음표 연주는 전체 1~4절이다. **채보된 음표의 합성음 미리듣기**로, 원본의 보컬·반주를 분리한 음원은 아니다. 이 ABC 악보를 아래 편곡의 선율 조건으로 사용했다.
+
+| 원본 | 헤비메탈 | K-pop 댄스 |
+|---|---|---|
+| 합창 · 4분 21초 | 기타·더블 킥 · 2분 7초 | 신스·댄스 비트 · 2분 13초 |
+| 생성 시간 해당 없음 | **생성 3분 48초** | **생성 4분 7초** |
+| [▶ 원본 듣기](https://nicekriss.github.io/toobusy-abc-studio/#original) | [▶ 헤비메탈 듣기](https://nicekriss.github.io/toobusy-abc-studio/#heavy-metal) | [▶ K-pop 댄스 듣기](https://nicekriss.github.io/toobusy-abc-studio/#kpop-dance) |
+
+RTX 3090 24GB · torch-eager/SDPA에서 측정한 YuE2 생성 시간이다(각각 227.8초 / 247.3초). 별도 ABC 채보와 MP3 변환·업로드는 제외하며, 실행 환경에 따라 달라진다.
+
+<details>
+<summary>헤비메탈 프롬프트 · 생성 3분 48초 · seed 913101</summary>
+
+```text
+Epic Korean heavy metal anthem, 132 BPM, thick distorted rhythm guitars, palm-muted chugging riffs, double kick drums, powerful snare, driving bass guitar, twin lead guitar harmonies, soaring gritty male lead singer, triumphant gang-vocal chorus, tight modern metal production, energetic dramatic arrangement. Korean language vocals, perform all four verses and every repeated chorus exactly in the supplied order, clear intelligible Korean diction, recognizable Aegukga vocal melody from the supplied score, complete song with a resolved final cadence, no spoken introduction, no additional lyrics.
+```
+
+`planning=melody`. [전체 생성 설정 JSON — 프롬프트·1~4절 가사·ABC 악보·시드](docs/examples/aegukga-heavy-metal.json)
+
+</details>
+
+<details>
+<summary>K-pop 댄스 프롬프트 · 생성 4분 7초 · seed 913103</summary>
+
+```text
+High-energy K-pop dance anthem, 128 BPM, bright expressive female lead vocals, layered pop vocal harmonies, four-on-the-floor kick, crisp claps, pumping synth bass, sparkling synth arpeggios, euphoric dance-pop chorus, rhythmic verses, modern glossy K-pop production, catchy melodic vocal delivery and a big final chorus. Korean language vocals, perform all four verses and every repeated chorus exactly in the supplied order, clear intelligible Korean diction, recognizable Aegukga vocal melody from the supplied score, complete song with a resolved final cadence, no spoken introduction, no additional lyrics.
+```
+
+`planning=melody`. [전체 생성 설정 JSON — 프롬프트·1~4절 가사·ABC 악보·시드](docs/examples/aegukga-kpop-dance.json)
+
+</details>
+
+원본은 [공유마당의 2018 애국가(합창) 1~4절](https://gongu.copyright.or.kr/gongu/wrt/wrt/view.do?wrtSn=13211046&menuNo=200020) — 안익태 작곡, 박인영 편곡, 서울시립교향악단·서울시합창단, 한국저작권위원회 공유마당의 ‘자유이용 기증’ 표시 음원이다. 두 편곡은 추출한 ABC와 전체 가사를 입력해 새로 생성한 결과이며, 음표나 가사 발음에 차이가 있을 수 있다. 출처·모델 라이선스는 비교 페이지에 함께 표시했다.
+
 ## 기능
 
 - 한글 도레미가 적힌 건반, 그리기 · 선택 · 지우개 도구

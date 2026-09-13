@@ -1,0 +1,19 @@
+{
+  "model": "m-a-p/YuE2-3B",
+  "vae": "m-a-p/YuE2-Vae",
+  "song": {
+    "style": "High-energy K-pop dance anthem, 128 BPM, bright expressive female lead vocals, layered pop vocal harmonies, four-on-the-floor kick, crisp claps, pumping synth bass, sparkling synth arpeggios, euphoric dance-pop chorus, rhythmic verses, modern glossy K-pop production, catchy melodic vocal delivery and a big final chorus. Korean language vocals, perform all four verses and every repeated chorus exactly in the supplied order, clear intelligible Korean diction, recognizable Aegukga vocal melody from the supplied score, complete song with a resolved final cadence, no spoken introduction, no additional lyrics. ",
+    "lyrics": "[Verse 1]\n동해물과 백두산이 마르고 닳도록\n하느님이 보우하사 우리나라 만세\n\n[Chorus]\n무궁화 삼천리 화려강산\n대한 사람 대한으로 길이 보전하세\n\n[Verse 2]\n남산 위에 저 소나무 철갑을 두른 듯\n바람서리 불변함은 우리 기상일세\n\n[Chorus]\n무궁화 삼천리 화려강산\n대한 사람 대한으로 길이 보전하세\n\n[Verse 3]\n가을 하늘 공활한데 높고 구름 없이\n밝은 달은 우리 가슴 일편단심일세\n\n[Chorus]\n무궁화 삼천리 화려강산\n대한 사람 대한으로 길이 보전하세\n\n[Verse 4]\n이 기상과 이 맘으로 충성을 다하여\n괴로우나 즐거우나 나라 사랑하세\n\n[Chorus]\n무궁화 삼천리 화려강산\n대한 사람 대한으로 길이 보전하세\n",
+    "seed": 913103,
+    "cot": "melody",
+    "abc": "X:1\nT:Aegukga - four verses\nM:4/4\nL:1/16\nQ:1/4=128\nV: Vocal clef=treble name=\"Vocal Melody\" snm=\"Vocal\"\nV: Ins clef=treble name=\"Ins Melody\" snm=\"Inst.\"\nK:A\n% intro\nV: Vocal\nZ4|\nV: Ins\nZ|e4a6g2f4|a4e4c4e4|a4b2c'2d'4e'4|\nV: Vocal\nZ|\nV: Ins\na2gfe3de4z4|\n% verse 1\nV: Vocal\ne4a6g2f4|a4e4c4e4|a4b2c'2d'6c'2|b12z4|\nV: Ins\nZ4|\nV: Vocal\ne'6d'2c'4b4|a4g2f2e4c4|e4a4b2b2c'4|a12z4|\nV: Ins\nZ4|\n% chorus\nV: Vocal\ng6a2b4g4|c'6d'2e'4c'4|b4a4g4a4|b12z4|\nV: Ins\nZ4|\nV: Vocal\ne'6d'2c'4b4|a4g2f2e4c4|e4a4b2b2c'4|a12z4|\nV: Ins\nZ4|\n% verse 2\nV: Vocal\ne4a6g2f4|a4g4f4e4|a4b2c'2d'6c'2|b12z4|\nV: Ins\nZ4|\nV: Vocal\ne'6d'2c'4b4|a4g2f2e4c4|e4a4b2b2c'4|a12z4|\nV: Ins\nZ4|\n% chorus\nV: Vocal\ng6a2b4g4|c'6d'2e'4c'4|b4a4g4a4|b12z4|\nV: Ins\nZ4|\nV: Vocal\ne'6d'2c'4b4|a4g2f2e4c4|e4a4b2b2c'4|a12z4|\nV: Ins\nZ4|\n% verse 3\nV: Vocal\ne4a6g2f4|a4e4c4e4|a4b2c'2d'6c'2|b12z4|\nV: Ins\nZ4|\nV: Vocal\ne'6d'2c'4b4|a4g2f2e4c4|e4a4b2b2c'4|a12z4|\nV: Ins\nZ4|\n% chorus\nV: Vocal\ng6a2b4g4|c'6d'2e'4c'2z2|b4a4g4a4|b12z4|\nV: Ins\nZ4|\nV: Vocal\ne'6d'2c'4b4|a4g2f2e4c4|e4a4b2b2c'4|a12z4|\nV: Ins\nZ4|\n% verse 4\nV: Vocal\ne4a6g2f4|a4e4c4e4|a4b2c'2d'6c'2|b12z4|\nV: Ins\nZ4|\nV: Vocal\ne'6d'2c'4b4|a4g2f2e4c4|e4a4b2b2c'4|a12z4|\nV: Ins\nZ4|\n% chorus\nV: Vocal\ng6a2b4g4|c'6d'2e'4c'4|b4a4g4a4|b12z4|\nV: Ins\nZ4|\nV: Vocal\ne'6d'2c'4b4|a4g2f2e4c4|e4a4b2b2c'4|a16|\nV: Ins\nZ4|\n% outro\nV: Vocal\nZ2|\nV: Ins\nZ2|\n"
+  },
+  "measurement": {
+    "generation_seconds": 247.30691869999282,
+    "audio_seconds": 133.03866666666667,
+    "gpu": "NVIDIA GeForce RTX 3090 24GB",
+    "backend": "torch-eager / SDPA",
+    "timing_field": "metrics.timing.e2e_seconds",
+    "note": "Recorded YuE2 pipeline time; excludes separate ABC transcription, MP3 export and upload."
+  }
+}
