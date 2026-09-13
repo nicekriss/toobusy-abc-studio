@@ -1,0 +1,4 @@
+# The demo audio under docs/ is for the GitHub Pages comparison player.
+# The YuE2 installer copies this archive into every user ComfyUI, where
+# documentation assets have no role, so keep them out of release archives.
+/docs export-ignore
