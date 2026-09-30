@@ -208,14 +208,9 @@ else:
                 "STRING",
                 {"multiline": True, "default": "", "tooltip": "비우면 자동 작곡 경로를 사용하고, 채우면 해당 ABC 기반으로 생성합니다."},
             )
-            return {"required": required}
-
-        def generate(self, model, style, lyrics, seed, planning, abc=""):
-            # 상위 YuE2 노드가 이미 abc 를 처리한다. 빈 값이면 자동 작곡,
-            # 값이 있으면 악보 기반 생성이고, planning=off 와 함께 오면
-            # 한국어 안내를 띄운다. 워커 호출을 여기서 다시 구현하면 상위가
-            # 바뀔 때 조용히 어긋나고 그 안내도 사라진다. 그대로 넘긴다.
-            return super().generate(model, style, lyrics, seed, planning, abc)
+            optional = dict(super().INPUT_TYPES().get("optional", {}))
+            optional.pop("abc", None)
+            return {"required": required, "optional": optional}
 
 
 _YUE2_GENERATE_CLASS_NAME = "2BZ YuE2 Generate + ABC"
