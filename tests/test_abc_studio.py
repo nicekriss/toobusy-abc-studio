@@ -114,14 +114,15 @@ class YuE2LocalGenerate:
                 "seed": ("INT", {"default": 831001}),
                 "planning": (["full", "melody", "off"], {"default": "full"}),
             },
-            "optional": {"abc": ("STRING", {"multiline": True, "default": ""})},
+            "optional": {"abc": ("STRING", {"multiline": True, "default": ""}), "max_tokens": ("INT", {"default": 9000})},
         }
 
     RETURN_TYPES = ("AUDIO",)
     FUNCTION = "generate"
 
-    def generate(self, model, style, lyrics, seed, planning, abc=""):
+    def generate(self, model, style, lyrics, seed, planning, abc="", max_tokens=9000):
         CALLS.append((model, style, lyrics, seed, planning, abc))
+        self.max_tokens = max_tokens
         if abc and abc.strip() and planning == "off":
             raise ValueError("planning 을 full 또는 melody 로 바꾸세요")
         return ("AUDIO_OK",)
@@ -164,6 +165,14 @@ def test_bridge_node_forwards_every_argument_to_upstream():
 
         node.generate("MODEL", "STYLE", "LYRICS", 7, "full", "")
         assert calls[-1][5] == "", "빈 악보도 상위가 자동 작곡으로 처리하도록 넘겨야 합니다"
+
+        assert node.max_tokens == 9000
+        node.generate("MODEL", "STYLE", "LYRICS", 7, "melody", _SAMPLE_SCORE, max_tokens=5000)
+        assert node.max_tokens == 5000
+        assert calls[-1][5] == _SAMPLE_SCORE
+        inputs = node.INPUT_TYPES()
+        assert inputs["optional"]["max_tokens"][1]["default"] == 9000
+        assert "abc" not in inputs["optional"]
 
 
 def test_bridge_node_keeps_the_planning_off_guard():
