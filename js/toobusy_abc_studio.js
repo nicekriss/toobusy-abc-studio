@@ -88,13 +88,33 @@ function openStudio(getAbc, setAbc, describe) {
   back.addEventListener("mousedown", (e) => { if (e.target === back) close(); });
 }
 
+function linkProblem(reason) {
+  if (reason === "link-cycle") return "abc 칸의 선이 빙 돌아 제자리로 돌아옵니다";
+  if (reason === "link-too-deep") return "abc 칸의 선이 너무 여러 번 이어져 있어 출처를 찾지 못했습니다";
+  return "abc 칸에 꽂힌 선의 출처를 찾지 못했습니다";
+}
+
+const OWN_NOT_TEXT = "이 노드의 abc 칸은 선택 목록이거나 읽기 전용이라 악보를 넣을 수 없습니다";
+
+function nameOf(n) {
+  return (n && (n.title || n.type)) || "연결된 노드";
+}
+
+// 꺼진 노드가 근원 자신인지, 가는 길 중간인지 구분해서 알려 준다
+function offNote(t) {
+  const off = t.disabledNode || t.node;
+  if (off === t.node) return "그 노드가 꺼져 있어 켜야 악보가 반영됩니다";
+  return `가는 길의 ${nameOf(off)} 노드가 꺼져 있어 그 노드를 켜야 악보가 반영됩니다`;
+}
+
 function describeTarget(node) {
   const t = resolveAbcTarget(node, app.graph);
   if (!t) return "이 노드에는 abc 칸이 없습니다";
-  if (!t.node) return "abc 칸에 꽂힌 선의 출처를 찾지 못했습니다";
-  const where = t.node.title || t.node.type || "연결된 노드";
-  if (!t.widget) return `${where} 에는 글자를 넣을 칸이 없습니다`;
-  if (t.disabled) return `${where} 에 넣습니다. 다만 그 노드가 꺼져 있어 지금은 악보가 전달되지 않습니다`;
+  if (!t.node) return linkProblem(t.reason);
+  const where = nameOf(t.node);
+  if (t.reason === "own-widget-not-text") return OWN_NOT_TEXT;
+  if (!t.widget) return `${where} 에는 악보를 그대로 내보내는 칸이 없습니다`;
+  if (t.disabled) return `${where} 에 넣습니다. 다만 ${offNote(t)}`;
   if (t.viaLink) return `abc 칸에 선이 꽂혀 있어 ${where} 쪽에 넣습니다`;
   return "다 그린 뒤 아래 '이 악보 쓰기'를 누르면 이 노드에 들어갑니다";
 }
@@ -107,17 +127,16 @@ function readAbc(node) {
 function writeAbc(node, text) {
   const t = resolveAbcTarget(node, app.graph);
   if (!t) return { ok: false, message: "이 노드에는 abc 칸이 없습니다" };
-  if (!t.node) return { ok: false, message: "abc 칸에 꽂힌 선의 출처를 찾지 못했습니다. 선을 빼고 다시 시도하세요" };
+  if (!t.node) return { ok: false, message: linkProblem(t.reason) + ". 선을 빼고 다시 시도하세요" };
+  if (t.reason === "own-widget-not-text") return { ok: false, message: OWN_NOT_TEXT };
   if (!t.widget) {
-    const where = t.node.title || t.node.type || "연결된 노드";
-    return { ok: false, message: `${where} 에는 글자를 넣을 칸이 없습니다. abc 칸의 선을 빼고 다시 누르세요` };
+    return { ok: false, message: `${nameOf(t.node)} 에는 악보를 그대로 내보내는 칸이 없습니다. abc 칸의 선을 빼거나 'ABC 악보 입력' 노드로 이어 주세요` };
   }
   t.widget.value = text;
   if (t.widget.callback) t.widget.callback(text, app.canvas, t.node);
   app.graph.setDirtyCanvas(true, true);
   if (t.disabled) {
-    const where = t.node.title || t.node.type || "연결된 노드";
-    return { ok: false, message: `${where} 에 넣었습니다. 그 노드가 꺼져 있으니 켜야 악보가 반영됩니다` };
+    return { ok: false, message: `${nameOf(t.node)} 에 넣었습니다. 다만 ${offNote(t)}` };
   }
   return { ok: true };
 }
