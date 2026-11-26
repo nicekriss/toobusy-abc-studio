@@ -133,6 +133,31 @@ RUNTIME_KERNEL = '''import torch
 torch.matmul(torch.ones(64,64,device='cuda'),torch.ones(64,64,device='cuda')).sum().item()'''
 
 
+def _capability(name):
+    # 'sm_86', 'sm_90a' or 'compute_120' -> (8, 6), (9, 0), (12, 0)
+    digits = ''.join(ch for ch in name.split('_', 1)[-1] if ch.isdigit())
+    return int(digits[:-1]), int(digits[-1])
+
+
+def supports(arch, builds):
+    """True when this Torch build carries kernels the card can run.
+
+    An exact name match is too strict. CUDA runs an sm_XY binary on any card
+    of the same major version with minor >= Y, so the official builds list
+    sm_86 and the RTX 40 cards (sm_89) use those kernels. Requiring 'sm_89'
+    itself refused every RTX 40 card. PTX (compute_XY) is compiled on load
+    for any newer card, so it covers later majors too.
+    """
+    major, minor = _capability(arch)
+    for build in builds:
+        b_major, b_minor = _capability(build)
+        if build.startswith('sm_') and b_major == major and b_minor <= minor:
+            return True
+        if build.startswith('compute_') and (b_major, b_minor) <= (major, minor):
+            return True
+    return False
+
+
 def verify_facts(facts):
     if tuple(facts['python']) != (3,11):
         raise RuntimeError('SheetSage2 런타임은 Python 3.11 이어야 합니다: ' + str(facts['python']))
@@ -149,7 +174,7 @@ def verify_facts(facts):
     # torch.cuda.is_available() stays true on a card this build has no kernels
     # for. That is why the old check passed on RTX 50 and the failure only
     # appeared once a song was already being analysed.
-    if facts['arch'] not in facts['builds']:
+    if not supports(facts['arch'], facts['builds']):
         raise RuntimeError(
             str(facts['gpu']) + ' 는 ' + str(facts['arch']) + ' 인데 설치된 Torch 는 '
             + ' '.join(facts['builds']) + ' 만 담고 있습니다. '

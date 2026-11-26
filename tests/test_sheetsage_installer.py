@@ -59,6 +59,24 @@ class RuntimeCheckTests(unittest.TestCase):
         self.assertIn('sm_120', message)
         self.assertIn('설치기', message)
 
+    def test_rtx40_runs_on_sm86_kernels(self):
+        # 4080 SUPER is sm_89; the cu128 build lists sm_86 and sm_90 but not
+        # sm_89. CUDA runs sm_86 binaries on sm_89, so this must pass.
+        ada = facts(gpu='NVIDIA GeForce RTX 4080 SUPER', arch='sm_89',
+                    builds=['sm_61','sm_70','sm_75','sm_80','sm_86','sm_90','sm_100','sm_120'])
+        installer.verify_facts(ada)
+
+    def test_newer_minor_in_build_does_not_cover_older_card(self):
+        # sm_90 kernels do not run on sm_89, nor sm_86 kernels on sm_80.
+        self.assertFalse(installer.supports('sm_89', ['sm_90']))
+        self.assertFalse(installer.supports('sm_80', ['sm_86']))
+
+    def test_other_major_needs_ptx(self):
+        self.assertFalse(installer.supports('sm_120', ['sm_86', 'sm_90']))
+        self.assertTrue(installer.supports('sm_120', ['sm_86', 'compute_90']))
+        self.assertFalse(installer.supports('sm_86', ['compute_90']))
+        self.assertTrue(installer.supports('sm_90', ['sm_90a']))
+
     def test_older_cuda_build_is_refused(self):
         with self.assertRaisesRegex(RuntimeError, r'2\.8\.0\+cu126'):
             installer.verify_facts(facts(torch='2.8.0+cu126'))
